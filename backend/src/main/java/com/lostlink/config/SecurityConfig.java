@@ -53,7 +53,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/items/**").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/h2-console/**").permitAll()
-                .anyRequest().authenticated()
+                .requestMatchers("/", "/error").permitAll()
             )
             .headers(headers -> headers.frameOptions(frame -> frame.disable()));
 
