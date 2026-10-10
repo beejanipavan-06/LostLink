@@ -22,80 +22,135 @@ LostLink is a web-based platform designed to help students and campus communitie
 - Leaflet and OpenStreetMap for campus mapping
 
 ### Backend
-- Java
-- Spring Boot
+- Java 17
+- Spring Boot 3.2.5 (Maven)
 - REST APIs
+- Docker
 
 ### Database
+- JPA / Hibernate (Default H2 in-memory or PostgreSQL/MySQL)
 - MongoDB Atlas
 
-## Project Structure
+---
 
-The exact folder structure may vary depending on the existing project.
+## Project Structure
 
 ```text
 LostLink/
 ├── frontend/       # React + Vite application
-├── backend/        # Spring Boot application
+├── backend/        # Spring Boot application (with Dockerfile)
+├── .gitignore      # Root Git ignore definitions
 └── README.md
 ```
 
-## Getting Started
+---
+
+## Getting Started (Local Development)
 
 ### Prerequisites
-- Node.js and npm
-- Java Development Kit (JDK)
+- Node.js (v18+) and npm
+- Java Development Kit (JDK 17)
 - Git
-- A MongoDB Atlas account
+- MongoDB Atlas connection string (or local instance)
 
 ### Frontend Setup
 
-Open a terminal in the frontend directory and run:
-
 ```bash
+cd frontend
 npm install
 npm run dev
 ```
 
 ### Backend Setup
 
-The backend build instructions depend on whether the project uses Maven or Gradle. Follow the instructions after identifying the backend build configuration.
+```bash
+cd backend
+.\mvnw.cmd spring-boot:run
+```
+*(Runs on `http://localhost:8080`)*
 
-### Database Configuration
+---
 
-Configure the MongoDB Atlas connection and other required environment variables on the backend. Do not commit database credentials, passwords, tokens, or `.env` files to GitHub.
+## 🚀 Render Deployment Instructions
+
+The backend is configured to deploy as a **Docker Web Service** on Render.
+
+### Render Configuration Settings
+
+| Setting | Value |
+|---|---|
+| **Service Type** | Web Service |
+| **Source Code** | Connected GitHub Repository |
+| **Branch** | `main` |
+| **Root Directory** | `backend` |
+| **Runtime** | `Docker` |
+| **Dockerfile Name** | `Dockerfile` |
+
+---
+
+### Required Render Environment Variables
+
+Set the following environment variables in the Render Dashboard (**Web Service ➔ Environment ➔ Environment Variables**):
+
+| Environment Variable | Description | Value Example / Where to Obtain |
+|---|---|---|
+| `PORT` | Web server listening port (Render assigns dynamically) | `10000` (Render defaults automatically) |
+| `SPRING_DATA_MONGODB_URI` | Connection URI for MongoDB Atlas | `mongodb+srv://<username>:<password>@cluster0.xxx.mongodb.net/lostlink` (Obtain from MongoDB Atlas Dashboard ➔ Connect ➔ Drivers) |
+| `APP_JWT_SECRET` | 256-bit secret key for JWT token signing | Generate a random 64-character hex string (e.g. `9a2f8c4b1d7e3f6a8c5b2d9e1f4a7c0b3d6e9f2a5c8b1d4e7f0a3c6b9d2e5f8a`) |
+| `APP_CORS_ALLOWED_ORIGINS` | Comma-separated allowed frontend origin URLs | `https://your-frontend.vercel.app,http://localhost:5173` (Obtain from Vercel/Netlify frontend URL) |
+| `SPRING_DATASOURCE_URL` *(Optional)* | Relational DB URL if using external PostgreSQL/MySQL | `jdbc:mysql://<host>:3306/lostlink_db` (Leave default for in-memory H2) |
+| `SPRING_DATASOURCE_USERNAME` *(Optional)* | Relational DB Username | `root` (Leave default if using H2) |
+| `SPRING_DATASOURCE_PASSWORD` *(Optional)* | Relational DB Password | `password` (Leave default if using H2) |
+
+---
+
+## 🗄️ Database Setup & Migration
+
+1. **MongoDB Atlas Setup**:
+   - Log into [MongoDB Atlas](https://www.mongodb.com/cloud/atlas).
+   - Create a database named `lostlink`.
+   - Add a database user under **Database Access** and grant read/write permissions.
+   - Add `0.0.0.0/0` under **Network Access** to allow connection requests from Render's cloud servers.
+   - Copy the MongoDB connection URI into `SPRING_DATA_MONGODB_URI` on Render.
+
+2. **Relational Database (JPA/Hibernate)**:
+   - By default, Spring Boot uses an embedded H2 database (`jdbc:h2:mem:lostlinkdb`) with `ddl-auto=update`. Schema tables are initialized automatically on app startup.
+   - If using a managed MySQL/PostgreSQL instance (e.g. Render PostgreSQL or Aiven), provide `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, and `SPRING_DATASOURCE_PASSWORD`.
+
+---
 
 ## 🛡️ Security & Git Best Practices (Do Not Push to Git)
 
-The project includes a root `.gitignore` file that automatically excludes sensitive files, local environment variables, build outputs, and heavy dependencies. **Never commit or push the following items to GitHub:**
+The root `.gitignore` file excludes sensitive credentials and build artifacts. **Never commit the following:**
 
-1. **Environment & Secrets:**
-   - `.env`, `.env.local`, `.env.*.local`
-   - MongoDB connection URIs containing usernames, passwords, or secret access tokens
-   - JWT secret keys or API private keys (`*.pem`, `*.key`, `*.p12`)
-2. **Build Outputs & Compilation Artifacts:**
-   - `frontend/dist/`, `frontend/build/`
-   - `backend/target/`
-   - Compiled Java binaries (`*.class`, `*.jar`, `*.war`)
-3. **Heavy Dependency Folders:**
-   - `node_modules/` (installed automatically via `npm install`)
-   - Local Maven installation binaries (`backend/apache-maven-*/`)
-4. **IDE & Local System Files:**
-   - Visual Studio Code (`.vscode/`), IntelliJ IDEA (`.idea/`, `*.iml`), Eclipse (`.classpath`, `.project`)
-   - OS generated files (`.DS_Store`, `Thumbs.db`, `desktop.ini`)
-5. **Log Files:**
-   - `*.log`, `npm-debug.log*`, `yarn-error.log*`
+- `.env`, `.env.local`, `.env.*`
+- MongoDB Atlas connection strings with credentials
+- JWT secret keys (`*.pem`, `*.key`)
+- Build folders (`frontend/dist/`, `backend/target/`, `node_modules/`)
 
-## Deployment Plan
+---
 
-- **Source control:** Git and GitHub
-- **Frontend hosting:** Vercel
-- **Backend hosting:** Render
-- **Database:** MongoDB Atlas
+## 📋 Manual Deployment Steps
 
-## Project Goal
+1. **GitHub Push**:
+   ```bash
+   git init
+   git add .
+   git commit -m "Configure backend for Render Docker deployment"
+   git branch -M main
+   git remote add origin https://github.com/YOUR_USERNAME/LostLink.git
+   git push -u origin main
+   ```
 
-LostLink aims to make campus lost-and-found management more accessible, organized, and secure through smart matching, location-based discovery, and an ownership verification process.
+2. **Render Web Service Creation**:
+   - Go to [Render Dashboard](https://dashboard.render.com).
+   - Click **New +** ➔ **Web Service**.
+   - Connect your GitHub repository `LostLink`.
+   - Set **Root Directory** to `backend`.
+   - Set **Runtime** to `Docker`.
+   - Set **Dockerfile Name** to `Dockerfile`.
+   - Add the Environment Variables listed above.
+   - Click **Create Web Service**. Render will automatically build the multi-stage Docker image and deploy your Spring Boot API.
 
 ---
 

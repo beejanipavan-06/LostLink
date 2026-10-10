@@ -1,27 +1,29 @@
-# Spring Boot LostLink Backend Configuration Example
+# ======================================================================
+# Spring Boot LostLink Backend Configuration Blueprint
+# Copy to application.properties or set as Environment Variables in Render
+# ======================================================================
 
 spring.application.name=lostlink-backend
-server.port=8080
+server.port=${PORT:8080}
 
-# Database Configuration (MySQL)
-spring.datasource.url=jdbc:mysql://localhost:3306/lostlink_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-spring.datasource.username=root
-spring.datasource.password=root
-spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+# Relational Database Configuration (H2 by default, or MySQL/PostgreSQL on Render/AWS)
+spring.datasource.url=${SPRING_DATASOURCE_URL:jdbc:h2:mem:lostlinkdb;DB_CLOSE_DELAY=-1;MODE=MySQL}
+spring.datasource.driver-class-name=${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.h2.Driver}
+spring.datasource.username=${SPRING_DATASOURCE_USERNAME:sa}
+spring.datasource.password=${SPRING_DATASOURCE_PASSWORD:}
+spring.h2.console.enabled=${SPRING_H2_CONSOLE_ENABLED:false}
 
-# H2 Fallback (For instant testing without active local MySQL daemon):
-# spring.datasource.url=jdbc:h2:mem:lostlinkdb;DB_CLOSE_DELAY=-1;MODE=MySQL
-# spring.datasource.driver-class-name=org.h2.Driver
-# spring.datasource.username=sa
-# spring.datasource.password=
-
-spring.jpa.hibernate.ddl-auto=update
+spring.jpa.hibernate.ddl-auto=${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
 spring.jpa.show-sql=false
-spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
+spring.jpa.properties.hibernate.dialect=${SPRING_JPA_DATABASE_PLATFORM:org.hibernate.dialect.H2Dialect}
+
+# MongoDB Atlas Configuration
+spring.data.mongodb.uri=${SPRING_DATA_MONGODB_URI:mongodb+srv://<username>:<password>@cluster0.example.mongodb.net/lostlink}
+spring.data.mongodb.auto-index-creation=true
 
 # JWT Security Secret & Expiration
-app.jwt.secret=9a2f8c4b1d7e3f6a8c5b2d9e1f4a7c0b3d6e9f2a5c8b1d4e7f0a3c6b9d2e5f8a
-app.jwt.expiration-ms=86400000
+app.jwt.secret=${APP_JWT_SECRET:YOUR_SECURE_256_BIT_SECRET_KEY_HERE}
+app.jwt.expiration-ms=${APP_JWT_EXPIRATION_MS:86400000}
 
-# CORS Configuration
-app.cors.allowed-origins=http://localhost:5173,http://localhost:3000
+# CORS Allowed Origins
+app.cors.allowed-origins=${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173,https://your-frontend-app.vercel.app}
